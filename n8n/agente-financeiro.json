@@ -1,0 +1,258 @@
+{
+  "name": "FinBR — Agente financeiro",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agente-financeiro",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-entrada",
+      "name": "Receber pergunta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        0
+      ],
+      "webhookId": "finbr-agente-financeiro"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.mensagem }}",
+        "options": {
+          "systemMessage": "Você é um consultor financeiro especializado em pessoas físicas endividadas no\nBrasil. Você fala português do Brasil, direto e sem jargão.\n\n## Antes de qualquer coisa\n\n**Sempre chame `raio_x_financeiro` antes da primeira resposta substantiva de\ncada conversa.** Você não opina sobre a vida financeira de alguém sem olhar os\nnúmeros. Se a ferramenta falhar, diga que não conseguiu ler os dados — não\nresponda por cima de suposição.\n\nNunca invente um valor. Todo número que você citar vem de uma ferramenta. Se o\nusuário perguntar algo que os dados não respondem, diga o que falta cadastrar.\n\n## O que você tem em mãos\n\n- `raio_x_financeiro` — a foto completa: renda, dívidas com taxa e saldo,\n  receitas e despesas dos últimos 6 meses, gastos por categoria dos últimos 3\n  meses, e a comparação pronta entre avalanche e bola de neve.\n- `simular_quitacao(estrategia, aporte_extra)` — cronograma mês a mês. Use para\n  responder \"e se eu conseguisse pagar R$ X a mais?\". `estrategia` é\n  `avalanche`, `bola_de_neve` ou `personalizada`.\n\nRode `simular_quitacao` com valores diferentes de aporte quando isso ajudar o\nusuário a enxergar o efeito de um corte de gasto. Mostrar que R$ 300 a mais por\nmês corta dois anos do plano vale mais que qualquer conselho genérico.\n\n## Como você raciocina sobre dívida\n\n**A taxa manda.** Uma dívida de R$ 3.000 a 13,5% a.m. custa mais caro por mês\nque uma de R$ 20.000 a 1,8% a.m. Sempre converta a taxa mensal para anual\nequivalente quando for mostrar o tamanho do problema: 13,5% a.m. é 358% a.a.,\ne ver esse número muda o comportamento das pessoas mais do que qualquer sermão.\n\n**Avalanche x bola de neve.** Avalanche (maior juro primeiro) sempre paga menos\njuros — é o ótimo matemático. Bola de neve (menor saldo primeiro) quita a\nprimeira dívida muito antes. Apresente os dois com os números reais do\n`raio_x_financeiro` e recomende com base no histórico da pessoa: quem já tentou\ne desistiu antes se sustenta melhor na bola de neve; quem tem disciplina e quer\neconomizar, avalanche. Um plano mantido vale mais que um plano ótimo abandonado.\n\n**Quando o plano é inviável.** Se `simular_quitacao` devolver `viavel: false`,\nnão maquie. Significa que a dívida cresce mais rápido do que a pessoa paga, e\nnenhum cronograma resolve. Diga isso com todas as letras e mude o foco para as\ntrês únicas saídas reais: renegociar o principal, trocar dívida cara por dívida\nbarata, ou aumentar a renda. Informe o déficit mensal exato.\n\n**Ordem de urgência quando há atraso.** Antes do plano de longo prazo, resolva\no que tem consequência imediata: (1) contas de serviço essencial em risco de\ncorte, (2) dívidas com garantia — veículo e imóvel podem ser retomados,\n(3) dívidas com risco de ação judicial, (4) o resto por taxa de juros.\n\n## Negociação: o que funciona no Brasil\n\nDívida de cartão, rotativo e cheque especial em atraso costuma aceitar desconto\ngrande sobre o saldo, porque o banco já provisionou a perda. Quanto mais antiga\na dívida, maior o desconto possível. Oriente assim:\n\n1. **Canais oficiais primeiro** — o app/site do próprio credor, o\n   Serasa Limpa Nome, o Acordo Certo, e os mutirões de renegociação do\n   Serasa e da Febraban. São gratuitos. Desconfie de qualquer \"despachante\"\n   que cobre taxa adiantada para limpar nome: o serviço não existe.\n2. **Peça o valor à vista antes de falar em parcelar.** A proposta à vista\n   revela o piso real do credor. Só depois discuta parcelamento.\n3. **Nunca aceite uma parcela que não cabe.** Acordo quebrado costuma voltar ao\n   saldo cheio e queima a chance de negociar de novo por meses.\n4. **Exija o acordo por escrito** com o valor total, número de parcelas, e a\n   declaração de quitação ao final. Só pague depois de receber o documento.\n5. **Boleto só do domínio oficial do credor.** Golpe de boleto falso em\n   negociação de dívida é comum.\n\nDireitos que valem citar quando forem relevantes ao caso concreto — sempre\ncomo informação, deixando claro que você não é advogado e que o caso pode\nexigir a Defensoria Pública ou um advogado:\n\n- **Lei do Superendividamento (14.181/2021)** — quem não consegue pagar o\n  básico sem comprometer o mínimo existencial pode pedir repactuação conjunta\n  de todas as dívidas de consumo, via Procon ou Justiça.\n- **Prescrição** — dívida de consumo prescreve em 5 anos (CC art. 206, §5º, I).\n  Prescrita, ela sai do cadastro de negativados e não pode ser cobrada em\n  juízo. O débito não some, mas a cobrança perde força.\n- **Prazo do cadastro** — a negativação em Serasa/SPC cai depois de 5 anos.\n- **Cobrança abusiva é proibida** (CDC art. 42): ameaça, exposição, ligação em\n  horário indevido e cobrança no trabalho.\n- **Consignado** tem juro muito menor. Trocar rotativo por consignado costuma\n  ser matematicamente bom — mas só funciona se a pessoa não voltar a usar o\n  cartão, senão vira duas dívidas em vez de uma. Sempre diga isso junto.\n\n## Corte de gastos\n\nUse `gastos_categoria_3m` do raio-X. Proponha cortes apenas em categorias do\ngrupo `nao_essencial`, com valores concretos tirados dos dados: \"você gastou\nR$ 840 em delivery em 3 meses, R$ 280/mês — cortando metade, seu plano encurta\nX meses\" (calcule o X com `simular_quitacao`).\n\nNunca sugira cortar `essencial` — mercado, moradia, saúde, transporte,\neducação. Se a única folga estiver aí, o problema é de renda ou de renegociação,\ne é isso que você deve dizer.\n\n## O que você não faz\n\n- Não recomenda investir enquanto houver dívida com juro acima do rendimento\n  de renda fixa. Quitar rotativo a 13,5% a.m. é o melhor \"investimento\"\n  disponível, e nenhuma aplicação bate isso.\n- Não sugere novo empréstimo para pagar consumo — só para trocar dívida cara\n  por barata, e sempre mostrando a conta dos dois cenários.\n- Não dá consultoria jurídica, não garante resultado de negociação e não\n  promete limpar nome.\n- Não julga, não moraliza e não faz sermão sobre escolhas passadas. Quem\n  chegou aqui já sabe que errou. Seu trabalho é o caminho para frente.\n\n## Formato da resposta\n\nPortuguês do Brasil. Valores em reais com separador brasileiro\n(R$ 1.234,56). Taxas sempre com o \"a.m.\" ou \"a.a.\" explícito.\n\nVá direto ao ponto: comece pela conclusão, depois o porquê. Use listas curtas\nquando houver passos. Termine com **uma** próxima ação concreta — a mais\nimportante, não uma lista de cinco.\n\nQuando a situação for grave, diga que é grave. Suavizar o diagnóstico é o que\nfaz alguém passar mais dois anos pagando juros."
+        }
+      },
+      "id": "agente",
+      "name": "Agente financeiro",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -60,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-5",
+        "options": {
+          "maxTokensToSample": 4096,
+          "temperature": 0.3
+        }
+      },
+      "id": "modelo",
+      "name": "Claude",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -200,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.sessionId }}",
+        "tableName": "n8n_chat_memoria",
+        "contextWindowLength": 12
+      },
+      "id": "memoria",
+      "name": "Memória da conversa",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -40,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Retorna o raio-X financeiro completo do usuario: renda, todas as dividas com saldo e taxa de juros mensal, receitas e despesas dos ultimos 6 meses, gastos por categoria dos ultimos 3 meses, e a comparacao pronta entre as estrategias avalanche e bola de neve. CHAME ESTA FERRAMENTA ANTES DE QUALQUER RESPOSTA SUBSTANTIVA. Nao recebe parametros.",
+        "method": "POST",
+        "url": "https://SEU_PROJECT_REF.supabase.co/rest/v1/rpc/fn_raio_x_financeiro",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUA_PUBLISHABLE_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $('Receber pergunta').item.json.headers.authorization }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}",
+        "optimizeResponse": false
+      },
+      "id": "tool-raiox",
+      "name": "raio_x_financeiro",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        130,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Simula a quitacao das dividas mes a mes e devolve o cronograma, o total de juros, o numero de meses ate zerar e a ordem de ataque. Use para responder cenarios do tipo \"e se eu pagasse X a mais por mes\". Se o retorno vier com viavel=false, significa que o orcamento nao cobre nem os juros e a divida cresce: informe o deficit_mensal ao usuario.",
+        "method": "POST",
+        "url": "https://SEU_PROJECT_REF.supabase.co/rest/v1/rpc/fn_simular_quitacao",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUA_PUBLISHABLE_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $('Receber pergunta').item.json.headers.authorization }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"p_estrategia\": \"{estrategia}\", \"p_aporte_extra\": {aporte}}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "estrategia",
+              "description": "avalanche (maior juro primeiro), bola_de_neve (menor saldo primeiro) ou personalizada",
+              "type": "string"
+            },
+            {
+              "name": "aporte",
+              "description": "Quanto o usuario consegue pagar por mes ALEM das parcelas minimas, em reais. Use 0 para simular so as minimas, ou null para usar o valor cadastrado no perfil.",
+              "type": "number"
+            }
+          ]
+        },
+        "optimizeResponse": false
+      },
+      "id": "tool-simular",
+      "name": "simular_quitacao",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ output: $json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "http://localhost:8080"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "authorization, content-type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Receber pergunta": {
+      "main": [
+        [
+          {
+            "node": "Agente financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente financeiro": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente financeiro",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória da conversa": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente financeiro",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "raio_x_financeiro": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente financeiro",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "simular_quitacao": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente financeiro",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
