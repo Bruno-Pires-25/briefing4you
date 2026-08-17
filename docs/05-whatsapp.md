@@ -90,9 +90,23 @@ Se o banco já está de pé, rode só a migration nova
 (`supabase/migrations/20260817000500_canais_autorizados.sql`) no SQL Editor.
 Se está começando do zero, `supabase/schema-completo.sql` já a inclui.
 
-### 2. Importar o fluxo
+### 2. Criar o fluxo no n8n
 
-**Workflows → Import from File** → `n8n/agente-whatsapp.json`.
+Dois caminhos.
+
+**Automático** — cria já com as credenciais preenchidas:
+
+```bash
+cp .env.n8n.example .env.n8n   # preencha
+npm run n8n:deploy n8n/agente-whatsapp.json
+```
+
+O script substitui os placeholders, recusa rodar se sobrou algum sem valor, e
+atualiza em vez de duplicar se já existir um workflow com o mesmo nome. O
+`.env.n8n` é ignorado pelo git — ele guarda a service_role key.
+
+**Manual** — *Workflows → Import from File* → `n8n/agente-whatsapp.json`, e
+troque os placeholders na interface.
 
 ### 3. Substituir os placeholders
 

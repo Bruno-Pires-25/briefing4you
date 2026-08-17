@@ -11,7 +11,8 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:bundle": "node scripts/gerar-bundle-sql.mjs"
+    "db:bundle": "node scripts/gerar-bundle-sql.mjs",
+    "n8n:deploy": "node scripts/criar-workflow-n8n.mjs"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.1",
