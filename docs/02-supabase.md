@@ -67,8 +67,35 @@ Em **Authentication → URL Configuration**, adicione as URLs de redirect:
 
 ## 5. Conferir se ficou de pé
 
-Cole isto no SQL Editor. Os números esperados são os que o schema produziu
-num PostgreSQL limpo — se algum divergir, a aplicação foi parcial.
+### Conferência rápida
+
+Uma consulta, uma linha de resposta. Todos os valores precisam bater:
+
+```sql
+select
+  (select count(*) from pg_tables
+     where schemaname = 'public')                                  as tabelas,        -- 12
+  (select count(*) from pg_tables
+     where schemaname = 'public' and rowsecurity)                  as com_rls,        -- 12
+  (select count(*) from pg_policies where schemaname = 'public')   as policies,       -- 46
+  (select count(*) from public.categorias where user_id is null)   as categorias,     -- 31
+  (select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind = 'v')               as views,          -- 3
+  (select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind = 'v'
+       and c.reloptions::text like '%security_invoker=true%')      as views_seguras,  -- 3
+  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname in ('fn_simular_quitacao',
+                         'fn_raio_x_financeiro'))                  as funcoes;        -- 2
+```
+
+`com_rls` menor que `tabelas`, ou `views_seguras` menor que `views`, significa
+dado exposto entre usuários — não siga em frente sem resolver.
+
+### Conferência detalhada
+
+Se algum número acima divergir, estas consultas mostram exatamente onde.
 
 ```sql
 -- 12 tabelas, todas com rowsecurity = true.
