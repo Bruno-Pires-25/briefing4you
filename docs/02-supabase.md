@@ -1,17 +1,31 @@
-# Supabase — criar o projeto e aplicar o schema
+# Supabase — aplicar o schema
 
-## 1. Liberar espaço para o projeto
+## 0. O projeto
 
-A organização **BRP Solutions** está no limite de 2 projetos gratuitos
-(DRE HOPE e DRE SCP). Escolha uma saída:
+| | |
+|---|---|
+| Nome | Pessoal |
+| Ref | `yvtnvccpewyyllpsfwto` |
+| URL | `https://yvtnvccpewyyllpsfwto.supabase.co` |
+| Organização | BRP Solutions |
+| Região | `us-west-2` (Oregon) |
+| Postgres | 17.6 |
+| Estado | `ACTIVE_HEALTHY`, schema `public` vazio |
 
-- **Pausar um projeto** — no painel do projeto, *Settings → General → Pause
-  project*. Pausar preserva os dados e você reativa quando quiser.
-- **Upgrade para Pro** — libera projetos adicionais.
-- **Outra organização** — criar `FinBR` numa org diferente.
+### Antes de aplicar: a região
 
-Depois crie o projeto: nome `FinBR`, região **South America (São Paulo)** —
-`sa-east-1`, que é a de menor latência para usuários no Brasil.
+O projeto está em **Oregon**, não em São Paulo. Para quem acessa do Brasil,
+isso adiciona cerca de 150–180 ms a cada ida e volta ao banco. Num painel
+pessoal dá para conviver, mas telas que disparam várias queries seguidas
+ficam visivelmente mais lentas do que ficariam em `sa-east-1`.
+
+A região de um projeto Supabase **não pode ser alterada**. Trocar significa
+criar um projeto novo em `sa-east-1` e migrar. Com o banco vazio, isso é
+recriar e rodar as migrations de novo — cinco minutos. Depois de meses de
+extrato importado, é um projeto de migração.
+
+Se for trocar, é agora. Se ficar em Oregon, siga em frente — nada no schema
+depende da região.
 
 ## 2. Aplicar as migrations
 
@@ -33,7 +47,7 @@ nessa ordem, executando um por vez.
 ### Pela CLI (recomendado se for versionar mudanças futuras)
 
 ```bash
-npx supabase link --project-ref SEU_PROJECT_REF
+npx supabase link --project-ref yvtnvccpewyyllpsfwto
 npx supabase db push
 ```
 

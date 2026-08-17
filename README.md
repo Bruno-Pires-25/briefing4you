@@ -28,21 +28,25 @@ outro.
 | Parsers de OFX e CSV | Prontos, 29 testes passando |
 | Painel React (5 telas) | Pronto, build limpo |
 | Workflow do n8n + system prompt | Pronto para importar |
-| Projeto Supabase | **Não criado** — veja abaixo |
+| Projeto Supabase | Criado (`Pessoal`), **schema ainda não aplicado** |
 | Projeto Lovable | Não criado — você conecta via GitHub |
 
-### O que falta destravar
+### O projeto Supabase
 
-A organização **BRP Solutions** já está no limite de 2 projetos gratuitos
-(DRE HOPE e DRE SCP), então o projeto `FinBR` não pôde ser criado. Três saídas:
+Ref `yvtnvccpewyyllpsfwto` (nome "Pessoal"), org BRP Solutions,
+`ACTIVE_HEALTHY`. Verificado: o schema `public` está **vazio** — zero tabelas,
+zero migrations, zero usuários. Nada a preservar, aplicar é seguro.
 
-1. Pausar um dos projetos existentes no painel do Supabase (pausar preserva os
-   dados; o projeto volta quando você quiser);
-2. Fazer upgrade da organização para o plano Pro;
-3. Criar o projeto numa outra organização/conta Supabase.
+Falta rodar as 4 migrations de `supabase/migrations/`, na ordem do nome do
+arquivo. O passo a passo está em [`docs/02-supabase.md`](docs/02-supabase.md).
 
-Feito isso, as migrations em `supabase/migrations/` aplicam na ordem do nome do
-arquivo e o resto funciona.
+> **Decida a região antes de carregar dados.** O projeto está em `us-west-2`
+> (Oregon), não em `sa-east-1` (São Paulo). São uns 150–180 ms a mais por
+> ida e volta para quem acessa do Brasil — tolerável num painel pessoal, mas
+> perceptível numa tela que faz várias queries. A região **não pode ser
+> alterada** depois: mudar exige criar outro projeto e migrar. Trocar agora,
+> com o banco vazio, custa cinco minutos; depois de meses de extrato
+> importado, custa bem mais.
 
 ## Rodando local
 
