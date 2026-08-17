@@ -27,14 +27,15 @@ outro.
 | Schema, RLS, simulador (SQL) | Pronto e testado num Postgres 16 real |
 | Parsers de OFX e CSV | Prontos, 29 testes passando |
 | Painel React (5 telas) | Pronto, build limpo |
-| Workflow do n8n + system prompt | Pronto para importar |
+| Workflow do n8n (painel) | Pronto para importar |
+| Assistente WhatsApp (áudio + texto) | Pronto para importar |
 | Projeto Supabase | `hxclrrcuqsduymgmbhph`, **schema ainda não aplicado** |
 | Projeto Lovable | Não criado — você conecta via GitHub |
 
 ### Aplicar o schema
 
 Cole [`supabase/schema-completo.sql`](supabase/schema-completo.sql) no SQL
-Editor do Supabase e execute uma vez. É o arquivo gerado a partir das 4
+Editor do Supabase e execute uma vez. É o arquivo gerado a partir das 5
 migrations, na ordem certa, envolvido numa transação — se algo falhar, nada
 é aplicado pela metade.
 
@@ -43,8 +44,8 @@ O passo a passo, com as consultas para conferir se deu certo, está em
 
 Esse bundle foi testado num PostgreSQL limpo: aplica de uma vez sem erro e
 produz exatamente o mesmo resultado de aplicar as migrations uma a uma —
-12 tabelas com RLS, 46 policies, 31 categorias, 3 views e as 2 funções do
-agente respondendo.
+13 tabelas com RLS, 31 categorias, 3 views e as funções do agente
+respondendo.
 
 ## Rodando local
 
@@ -91,6 +92,8 @@ hoje precisa ser refeito: basta gravar em `transacoes` com `origem = 'api'`.
   agente
 - [`docs/04-extratos.md`](docs/04-extratos.md) — formatos, dedupe e o caminho
   para a automação via API
+- [`docs/05-whatsapp.md`](docs/05-whatsapp.md) — o assistente no WhatsApp, com
+  áudio, e a lista de números que impede vazamento
 
 ## Estrutura
 
@@ -103,8 +106,9 @@ src/
 supabase/
   migrations/      Schema, RLS, categorias padrão, views e simulador
 n8n/
-  agente-financeiro.json   Workflow para importar no n8n
-  prompts/system-prompt.md Fonte da verdade do system prompt
+  agente-financeiro.json   Agente do painel (chat na web)
+  agente-whatsapp.json     Assistente no WhatsApp, com áudio
+  prompts/                 Fonte da verdade dos system prompts
 ```
 
 ## Segurança
@@ -115,5 +119,10 @@ n8n/
 - A chave `publishable` do Supabase vai no bundle do navegador — isso é normal.
   Quem impede um usuário de ler os dados de outro é a RLS, nunca o sigilo dessa
   chave.
-- O agente do n8n recebe o **JWT do usuário** e o repassa ao Supabase. Ele
+- O agente do painel recebe o **JWT do usuário** e o repassa ao Supabase. Ele
   nunca usa a `service_role` key, que enxergaria todos os usuários.
+- O assistente do WhatsApp não tem JWT — mensagem de WhatsApp não carrega
+  sessão. A trava ali é outra: uma lista de números autorizados, e funções que
+  resolvem o dono **a partir do número**, sem aceitar `user_id` de quem chama.
+  Número fora da lista recebe erro, não dado. Ver
+  [`docs/05-whatsapp.md`](docs/05-whatsapp.md).
