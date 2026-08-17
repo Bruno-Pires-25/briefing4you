@@ -51,7 +51,7 @@ agente respondendo.
 ```bash
 npm install
 cp .env.example .env    # preencha com os dados do seu projeto Supabase
-npm run dev             # http://localhost:8080
+npm run dev             # http://localhost:5180
 ```
 
 Outros comandos:

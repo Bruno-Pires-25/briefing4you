@@ -63,7 +63,7 @@ Providers**) para não precisar validar e-mail a cada teste. Religue antes de
 colocar no ar.
 
 Em **Authentication → URL Configuration**, adicione as URLs de redirect:
-`http://localhost:8080` e, depois, o domínio publicado pelo Lovable.
+`http://localhost:5180` e, depois, o domínio publicado pelo Lovable.
 
 ## 5. Conferir se ficou de pé
 

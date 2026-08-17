@@ -68,7 +68,7 @@ VITE_AGENTE_WEBHOOK_URL=https://SEU_N8N/webhook/agente-financeiro
 ### 6. Ajustar o CORS
 
 No nó **Responder**, o header `Access-Control-Allow-Origin` está em
-`http://localhost:8080`. Troque pela URL publicada do painel quando for para o
+`http://localhost:5180`. Troque pela URL publicada do painel quando for para o
 ar, ou liste as duas.
 
 Não use `*`: qualquer site aberto no navegador do usuário conseguiria ler as

@@ -8,7 +8,13 @@ export default defineConfig(({ mode }) => ({
     // IPv6. Fixar "::" quebra o `npm run dev` em máquina com IPv6 desligado,
     // com um EAFNOSUPPORT que não diz o que fazer.
     host: true,
-    port: 8080,
+    // 8080 é o padrão do template do Lovable — e por isso mesmo colide com
+    // qualquer outro projeto local que também tenha ficado no padrão.
+    port: 5180,
+    // Sem isto o Vite troca de porta sozinho quando a escolhida está ocupada,
+    // e você acaba olhando a URL de sempre e vendo o app errado. Melhor falhar
+    // dizendo "porta ocupada" do que subir num endereço que ninguém sabe qual é.
+    strictPort: true,
   },
   plugins: [react()],
   resolve: {

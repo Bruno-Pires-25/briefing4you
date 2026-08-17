@@ -163,7 +163,7 @@
             "entries": [
               {
                 "name": "Access-Control-Allow-Origin",
-                "value": "http://localhost:8080"
+                "value": "http://localhost:5180"
               },
               {
                 "name": "Access-Control-Allow-Headers",
