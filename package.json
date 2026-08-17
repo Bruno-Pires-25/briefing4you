@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:bundle": "node scripts/gerar-bundle-sql.mjs"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.1",

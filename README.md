@@ -28,25 +28,23 @@ outro.
 | Parsers de OFX e CSV | Prontos, 29 testes passando |
 | Painel React (5 telas) | Pronto, build limpo |
 | Workflow do n8n + system prompt | Pronto para importar |
-| Projeto Supabase | Criado (`Pessoal`), **schema ainda não aplicado** |
+| Projeto Supabase | `hxclrrcuqsduymgmbhph`, **schema ainda não aplicado** |
 | Projeto Lovable | Não criado — você conecta via GitHub |
 
-### O projeto Supabase
+### Aplicar o schema
 
-Ref `yvtnvccpewyyllpsfwto` (nome "Pessoal"), org BRP Solutions,
-`ACTIVE_HEALTHY`. Verificado: o schema `public` está **vazio** — zero tabelas,
-zero migrations, zero usuários. Nada a preservar, aplicar é seguro.
+Cole [`supabase/schema-completo.sql`](supabase/schema-completo.sql) no SQL
+Editor do Supabase e execute uma vez. É o arquivo gerado a partir das 4
+migrations, na ordem certa, envolvido numa transação — se algo falhar, nada
+é aplicado pela metade.
 
-Falta rodar as 4 migrations de `supabase/migrations/`, na ordem do nome do
-arquivo. O passo a passo está em [`docs/02-supabase.md`](docs/02-supabase.md).
+O passo a passo, com as consultas para conferir se deu certo, está em
+[`docs/02-supabase.md`](docs/02-supabase.md).
 
-> **Decida a região antes de carregar dados.** O projeto está em `us-west-2`
-> (Oregon), não em `sa-east-1` (São Paulo). São uns 150–180 ms a mais por
-> ida e volta para quem acessa do Brasil — tolerável num painel pessoal, mas
-> perceptível numa tela que faz várias queries. A região **não pode ser
-> alterada** depois: mudar exige criar outro projeto e migrar. Trocar agora,
-> com o banco vazio, custa cinco minutos; depois de meses de extrato
-> importado, custa bem mais.
+Esse bundle foi testado num PostgreSQL limpo: aplica de uma vez sem erro e
+produz exatamente o mesmo resultado de aplicar as migrations uma a uma —
+12 tabelas com RLS, 46 policies, 31 categorias, 3 views e as 2 funções do
+agente respondendo.
 
 ## Rodando local
 

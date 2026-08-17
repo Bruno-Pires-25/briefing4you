@@ -4,32 +4,30 @@
 
 | | |
 |---|---|
-| Nome | Pessoal |
-| Ref | `yvtnvccpewyyllpsfwto` |
-| URL | `https://yvtnvccpewyyllpsfwto.supabase.co` |
-| Organização | BRP Solutions |
-| Região | `us-west-2` (Oregon) |
-| Postgres | 17.6 |
-| Estado | `ACTIVE_HEALTHY`, schema `public` vazio |
+| Ref | `hxclrrcuqsduymgmbhph` |
+| URL | `https://hxclrrcuqsduymgmbhph.supabase.co` |
+| Região pretendida | `sa-east-1` (São Paulo) |
 
-### Antes de aplicar: a região
+Confirme a região em **Settings → General** antes de carregar dados: ela não
+pode ser alterada depois, e trocar exige criar outro projeto e migrar. Com o
+banco ainda vazio isso custa cinco minutos; com meses de extrato importado,
+bem mais.
 
-O projeto está em **Oregon**, não em São Paulo. Para quem acessa do Brasil,
-isso adiciona cerca de 150–180 ms a cada ida e volta ao banco. Num painel
-pessoal dá para conviver, mas telas que disparam várias queries seguidas
-ficam visivelmente mais lentas do que ficariam em `sa-east-1`.
+## 1. Aplicar o schema
 
-A região de um projeto Supabase **não pode ser alterada**. Trocar significa
-criar um projeto novo em `sa-east-1` e migrar. Com o banco vazio, isso é
-recriar e rodar as migrations de novo — cinco minutos. Depois de meses de
-extrato importado, é um projeto de migração.
+O jeito mais direto: cole **`supabase/schema-completo.sql`** inteiro no
+**SQL Editor** e execute uma vez.
 
-Se for trocar, é agora. Se ficar em Oregon, siga em frente — nada no schema
-depende da região.
+Esse arquivo é gerado a partir das migrations (`npm run db:bundle`), já na
+ordem correta e envolvido em `begin/commit` — se qualquer statement falhar,
+nada é aplicado pela metade e você não fica com um schema quebrado.
 
-## 2. Aplicar as migrations
+Rodar duas vezes falha no primeiro `create table`, o que é o comportamento
+desejado: avisa que o schema já existe em vez de duplicar dado em silêncio.
 
-As migrations estão em `supabase/migrations/` e aplicam **na ordem alfabética
+### Alternativa: migration por migration
+
+As migrations vivem em `supabase/migrations/` e aplicam **na ordem alfabética
 do nome do arquivo**:
 
 | Arquivo | O que faz |
@@ -39,15 +37,10 @@ do nome do arquivo**:
 | `20260808000300_categorias_padrao.sql` | 31 categorias de sistema |
 | `20260808000400_views_e_simulador.sql` | Views, `fn_simular_quitacao`, `fn_raio_x_financeiro` |
 
-### Pelo SQL Editor (mais simples)
-
-Abra o **SQL Editor** no painel do Supabase e cole o conteúdo de cada arquivo,
-nessa ordem, executando um por vez.
-
-### Pela CLI (recomendado se for versionar mudanças futuras)
+### Alternativa: CLI (melhor se for versionar mudanças futuras)
 
 ```bash
-npx supabase link --project-ref yvtnvccpewyyllpsfwto
+npx supabase link --project-ref hxclrrcuqsduymgmbhph
 npx supabase db push
 ```
 
@@ -74,30 +67,35 @@ Em **Authentication → URL Configuration**, adicione as URLs de redirect:
 
 ## 5. Conferir se ficou de pé
 
-No SQL Editor:
+Cole isto no SQL Editor. Os números esperados são os que o schema produziu
+num PostgreSQL limpo — se algum divergir, a aplicação foi parcial.
 
 ```sql
--- Deve listar 12 tabelas, todas com rowsecurity = true.
-select tablename, rowsecurity
-from pg_tables
-where schemaname = 'public'
-order by tablename;
+-- 12 tabelas, todas com rowsecurity = true.
+select count(*) filter (where rowsecurity) as com_rls, count(*) as total
+from pg_tables where schemaname = 'public';
 
--- Deve devolver 31.
+-- 46 policies (10 tabelas x 4, mais 2 de perfis e 4 de categorias).
+select count(*) from pg_policies where schemaname = 'public';
+
+-- 31 categorias de sistema.
 select count(*) from public.categorias where user_id is null;
 
--- As duas funções do agente.
-select proname from pg_proc
-where proname in ('fn_simular_quitacao', 'fn_raio_x_financeiro');
+-- 3 views, todas com security_invoker ligado. Se vier 'f' em alguma, ela
+-- estaria vazando dados de todos os usuários — pare e reaplique.
+select c.relname, c.reloptions::text like '%security_invoker=true%' as invoker
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind = 'v' order by c.relname;
+
+-- As 2 funções do agente.
+select proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and proname in ('fn_simular_quitacao', 'fn_raio_x_financeiro');
 ```
 
-Depois de criar sua conta pelo painel e cadastrar uma dívida, teste o
-simulador logado (o SQL Editor roda como superusuário e ignora RLS, então
-prefira testar pela aplicação):
-
-```sql
-select jsonb_pretty(public.fn_simular_quitacao('avalanche', 500));
-```
+O simulador só devolve resultado para um usuário autenticado, então teste
+pela aplicação depois de criar sua conta e cadastrar uma dívida — o SQL
+Editor roda como superusuário e `auth.uid()` volta nulo ali.
 
 ## 6. Gerar os tipos TypeScript
 
@@ -105,7 +103,7 @@ Os tipos em `src/types/db.ts` foram escritos à mão para o projeto compilar
 antes de o banco existir. Com o projeto criado, gere os oficiais:
 
 ```bash
-npx supabase gen types typescript --project-id SEU_PROJECT_REF > src/types/supabase.ts
+npx supabase gen types typescript --project-id hxclrrcuqsduymgmbhph > src/types/supabase.ts
 ```
 
 ## Notas sobre o schema
