@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Precisa ser legível a 16px, então: uma forma cheia e um traço grosso.
+       Detalhe fino vira borrão nesse tamanho. -->
+  <rect width="32" height="32" rx="7" fill="#0f172a"/>
+  <!-- A linha descendo é a dívida caindo — a promessa do produto em um traço. -->
+  <path d="M7 10 L14 17 L18 13 L25 20"
+        fill="none" stroke="#22c55e" stroke-width="3.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="25" cy="20" r="2.6" fill="#22c55e"/>
+</svg>

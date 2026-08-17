@@ -4,7 +4,10 @@ import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    // `true` em vez de "::": o Vite resolve para 0.0.0.0 e escuta em IPv4 e
+    // IPv6. Fixar "::" quebra o `npm run dev` em máquina com IPv6 desligado,
+    // com um EAFNOSUPPORT que não diz o que fazer.
+    host: true,
     port: 8080,
   },
   plugins: [react()],
