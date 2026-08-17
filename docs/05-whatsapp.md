@@ -101,6 +101,13 @@ cp .env.n8n.example .env.n8n   # preencha
 npm run n8n:deploy n8n/agente-whatsapp.json
 ```
 
+Ainda sem todas as chaves? Cria o fluxo assim mesmo e você completa na
+interface — ele lista no final o que subiu vazio:
+
+```bash
+npm run n8n:deploy n8n/agente-whatsapp.json -- --sem-credenciais
+```
+
 O script substitui os placeholders, recusa rodar se sobrou algum sem valor, e
 atualiza em vez de duplicar se já existir um workflow com o mesmo nome. O
 `.env.n8n` é ignorado pelo git — ele guarda a service_role key.

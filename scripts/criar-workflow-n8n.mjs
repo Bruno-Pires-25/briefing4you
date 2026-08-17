@@ -61,7 +61,13 @@ const env = (nome, obrigatoria = true) => {
 // Substituição dos placeholders
 // ---------------------------------------------------------------------------
 
-const arquivo = process.argv[2] ?? "n8n/agente-whatsapp.json";
+const args = process.argv.slice(2);
+// Permite criar o workflow antes de ter todas as chaves — útil para já deixar
+// o fluxo desenhado no n8n e preencher o resto na interface. O que ele NÃO
+// faz é deixar isso passar em silêncio: lista o que ficou faltando.
+const permitirPlaceholders = args.includes("--sem-credenciais");
+const arquivo = args.find((a) => !a.startsWith("--")) ?? "n8n/agente-whatsapp.json";
+
 if (!existsSync(arquivo)) {
   console.error(`Arquivo não encontrado: ${arquivo}`);
   process.exit(1);
@@ -70,11 +76,15 @@ if (!existsSync(arquivo)) {
 const N8N_URL = env("N8N_URL").replace(/\/+$/, "");
 const N8N_API_KEY = env("N8N_API_KEY");
 
+// Com --sem-credenciais nada além do n8n é obrigatório: o objetivo ali é
+// justamente subir o desenho do fluxo antes de ter as chaves em mãos.
+const exigir = !permitirPlaceholders;
+
 const SUBSTITUICOES = {
-  "https://SEU_PROJECT_REF.supabase.co": env("SUPABASE_URL"),
-  "https://hxclrrcuqsduymgmbhph.supabase.co": env("SUPABASE_URL"),
-  SUA_SERVICE_ROLE_KEY: env("SUPABASE_SERVICE_ROLE_KEY"),
-  SUA_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY ?? "",
+  "https://SEU_PROJECT_REF.supabase.co": env("SUPABASE_URL", exigir),
+  "https://hxclrrcuqsduymgmbhph.supabase.co": env("SUPABASE_URL", exigir),
+  SUA_SERVICE_ROLE_KEY: env("SUPABASE_SERVICE_ROLE_KEY", exigir),
+  SUA_PUBLISHABLE_KEY: env("SUPABASE_PUBLISHABLE_KEY", false),
   "https://SEU_EVOLUTION": env("EVOLUTION_URL", false),
   SUA_INSTANCIA: env("EVOLUTION_INSTANCE", false),
   SUA_APIKEY_EVOLUTION: env("EVOLUTION_APIKEY", false),
@@ -98,9 +108,10 @@ const restantes = [...bruto.matchAll(/\b(SUA?_[A-Z_]+|SEU_[A-Z_]+)\b/g)]
   .map((m) => m[1])
   .filter((v, i, a) => a.indexOf(v) === i);
 
-if (restantes.length > 0) {
+if (restantes.length > 0 && !permitirPlaceholders) {
   console.error(`\nAinda há placeholders sem valor: ${restantes.join(", ")}`);
-  console.error("Preencha as variáveis correspondentes antes de criar o workflow.\n");
+  console.error("Preencha as variáveis correspondentes, ou use --sem-credenciais");
+  console.error("para criar o workflow assim mesmo e completar na interface.\n");
   process.exit(1);
 }
 
@@ -175,6 +186,12 @@ try {
   console.log("  1. Nó 'Claude Haiku'  -> credencial Anthropic API");
   console.log("  2. Nó 'Memória...'    -> credencial Postgres (Supabase, modo Session)");
   console.log("  3. Ativar o workflow e copiar a Production URL do webhook");
+
+  if (restantes.length > 0) {
+    console.log("\nE preencher estes placeholders, que subiram sem valor:");
+    for (const r of restantes) console.log(`  - ${r}`);
+    console.log("\nO workflow não vai funcionar até que todos estejam preenchidos.");
+  }
 } catch (erro) {
   if (erro.status === 401) {
     console.error("\n401: a API key do n8n foi recusada. Gere outra em Settings -> n8n API.");
