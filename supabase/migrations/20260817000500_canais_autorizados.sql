@@ -309,7 +309,11 @@ begin
       select d.id, d.credor, d.tipo, d.status, d.saldo_devedor, d.taxa_juros_mensal,
              d.parcela_minima, d.parcelas_total, d.parcelas_pagas, d.dia_vencimento,
              d.dias_em_atraso, d.aceita_negociacao, d.em_orgao_protecao,
-             round(d.saldo_devedor * d.taxa_juros_mensal, 2) as juros_mes
+             round(d.saldo_devedor * d.taxa_juros_mensal, 2) as juros_mes,
+             -- Anual composta já calculada, em %: (1+t)^12 - 1. O modelo cita
+             -- este campo em vez de fazer a conta — LLM errando potência em
+             -- conselho financeiro não é um risco que valha correr.
+             round((power(1 + d.taxa_juros_mensal, 12) - 1) * 100, 0) as taxa_anual_pct
       from public.dividas d
       where d.user_id = p_user and d.status <> 'quitada'
     ) x;

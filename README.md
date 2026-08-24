@@ -29,13 +29,14 @@ outro.
 | Painel React (5 telas) | Pronto, build limpo |
 | Workflow do n8n (painel) | Pronto para importar |
 | Assistente WhatsApp (áudio + texto) | Pronto para importar |
-| Projeto Supabase | `hxclrrcuqsduymgmbhph`, **schema ainda não aplicado** |
+| Assistente pessoal (tarefas, objetivos, memórias) | Pronto para importar |
+| Projeto Supabase | `hxclrrcuqsduymgmbhph`, base aplicada — **falta o delta** `supabase/aplicar-assistente.sql` |
 | Projeto Lovable | Não criado — você conecta via GitHub |
 
 ### Aplicar o schema
 
 Cole [`supabase/schema-completo.sql`](supabase/schema-completo.sql) no SQL
-Editor do Supabase e execute uma vez. É o arquivo gerado a partir das 5
+Editor do Supabase e execute uma vez. É o arquivo gerado a partir das 6
 migrations, na ordem certa, envolvido numa transação — se algo falhar, nada
 é aplicado pela metade.
 
@@ -44,7 +45,7 @@ O passo a passo, com as consultas para conferir se deu certo, está em
 
 Esse bundle foi testado num PostgreSQL limpo: aplica de uma vez sem erro e
 produz exatamente o mesmo resultado de aplicar as migrations uma a uma —
-13 tabelas com RLS, 31 categorias, 3 views e as funções do agente
+16 tabelas com RLS, 31 categorias, 3 views e as funções dos agentes
 respondendo.
 
 ## Rodando local
@@ -94,6 +95,8 @@ hoje precisa ser refeito: basta gravar em `transacoes` com `origem = 'api'`.
   para a automação via API
 - [`docs/05-whatsapp.md`](docs/05-whatsapp.md) — o assistente no WhatsApp, com
   áudio, e a lista de números que impede vazamento
+- [`docs/06-assistente-pessoal.md`](docs/06-assistente-pessoal.md) — o assistente
+  pessoal completo: tarefas, objetivos e as memórias que o treinam
 
 ## Estrutura
 
@@ -107,7 +110,8 @@ supabase/
   migrations/      Schema, RLS, categorias padrão, views e simulador
 n8n/
   agente-financeiro.json   Agente do painel (chat na web)
-  agente-whatsapp.json     Assistente no WhatsApp, com áudio
+  agente-whatsapp.json     Assistente financeiro no WhatsApp (referência)
+  agente-assistente-pessoal.json  O assistente completo: dia a dia + finanças
   prompts/                 Fonte da verdade dos system prompts
 ```
 

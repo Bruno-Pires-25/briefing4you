@@ -5,7 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "whatsapp-financeiro",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "id": "wh",
@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// A Evolution manda varios eventos no mesmo webhook. Aqui reduzimos\n// tudo a um formato so, e decidimos cedo o que ignorar.\nconst e = $input.first().json;\nconst d = e.data ?? e;\nconst key = d.key ?? {};\nconst msg = d.message ?? {};\n\nconst remoteJid = key.remoteJid ?? \"\";\nconst telefone = remoteJid.split(\"@\")[0].replace(/[^0-9]/g, \"\");\n\n// fromMe: eco da propria resposta do bot. Sem isso ele conversa sozinho.\n// @g.us: grupo. Dado financeiro pessoal nao vai para grupo.\nconst ignorar =\n  key.fromMe === true ||\n  remoteJid.endsWith(\"@g.us\") ||\n  remoteJid.endsWith(\"@broadcast\") ||\n  !telefone;\n\nconst textoDireto =\n  msg.conversation ??\n  msg.extendedTextMessage?.text ??\n  null;\n\nconst audio = msg.audioMessage ?? null;\n\nreturn [{ json: {\n  ignorar,\n  telefone,\n  remoteJid,\n  messageId: key.id ?? null,\n  tipo: audio ? \"audio\" : (textoDireto ? \"texto\" : \"outro\"),\n  texto: textoDireto,\n  duracaoAudio: audio?.seconds ?? null,\n} }];"
+        "jsCode": "// A Evolution manda varios eventos no mesmo webhook. Aqui reduzimos\n// tudo a um formato so, e decidimos cedo o que ignorar.\nconst e = $input.first().json;\nconst d = e.data ?? e;\nconst key = d.key ?? {};\nconst msg = d.message ?? {};\n\nconst remoteJid = key.remoteJid ?? \"\";\nconst telefone = remoteJid.split(\"@\")[0].replace(/[^0-9]/g, \"\");\n\n// fromMe: eco da propria resposta do bot. Sem isso ele conversa sozinho.\n// @g.us: grupo. Dado financeiro pessoal nao vai para grupo.\nconst ignorar =\n  key.fromMe === true ||\n  remoteJid.endsWith(\"@g.us\") ||\n  remoteJid.endsWith(\"@broadcast\") ||\n  !remoteJid.endsWith(\"@s.whatsapp.net\") ||\n  !telefone;\n\nconst textoDireto =\n  msg.conversation ??\n  msg.extendedTextMessage?.text ??\n  null;\n\nconst audio = msg.audioMessage ?? null;\n\nreturn [{ json: {\n  ignorar,\n  telefone,\n  remoteJid,\n  messageId: key.id ?? null,\n  tipo: audio ? \"audio\" : (textoDireto ? \"texto\" : \"outro\"),\n  texto: textoDireto,\n  duracaoAudio: audio?.seconds ?? null,\n} }];"
       },
       "id": "norm",
       "name": "Normalizar",
@@ -230,7 +230,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Junta os dois caminhos num campo so. O texto do audio vem do\n// Whisper; o de texto ja veio pronto do Normalizar.\nconst n = $(\"Normalizar\").first().json;\nconst t = $input.first().json;\nconst pergunta = (t.text ?? t.texto ?? \"\").trim();\n\nif (!pergunta) {\n  return [{ json: { ...n, pergunta: null, vazio: true } }];\n}\n\nreturn [{ json: { ...n, pergunta } }];"
+        "jsCode": "// Junta os dois caminhos num campo so. O texto do audio vem do\n// Whisper; o de texto ja veio pronto do Normalizar.\nconst n = $(\"Normalizar\").first().json;\nconst t = $input.first().json;\nconst pergunta = (t.text ?? t.texto ?? \"\").trim();\n\nif (!pergunta) {\n  return [{ json: { ...n, pergunta: \"(A transcricao do audio veio vazia. Responda em uma linha pedindo para a pessoa repetir a mensagem.)\", vazio: true } }];\n}\n\nreturn [{ json: { ...n, pergunta } }];"
       },
       "id": "merge",
       "name": "Pergunta final",
